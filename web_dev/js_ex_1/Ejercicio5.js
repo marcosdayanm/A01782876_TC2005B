@@ -1,3 +1,5 @@
+// Escribe una función que calcule el máximo común divisor de dos números
+
 let mcd = (a, b) => {
   // algoritmo de Euclides
   while (b != 0) {

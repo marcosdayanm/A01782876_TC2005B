@@ -1,3 +1,5 @@
+// Escribe una función que implemente el algoritmo 'bubble-sort' para ordenar una lista de números.
+
 let bubbleSort = (arr) => {
   let changes = 0;
   let size = arr.length;

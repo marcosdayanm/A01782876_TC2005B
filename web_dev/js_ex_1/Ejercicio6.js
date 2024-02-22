@@ -1,3 +1,5 @@
+// Crea una función que cambie una cadena de texto a 'Hacker Speak'. Por ejemplo, para la cadena 'Javascript es divertido', su hacker speak es: 'J4v45c1pt 35 d1v3rt1d0'.
+
 let leet = (phrase) => {
   const leetDict = {
     a: "4",

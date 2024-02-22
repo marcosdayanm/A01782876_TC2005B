@@ -1,3 +1,5 @@
+// Escribe una función que reciba una cadena de texto y regrese una nueva con la primer letra de cada palabra en mayúscula.
+
 let cap = (phrase) => {
   let size = phrase.length;
   let chars = phrase.split("");
