@@ -4,7 +4,6 @@ import express from "express";
 import { body, validationResult } from "express-validator";
 
 const app = express();
-app.use(express.json()); // Middleware para parsear JSON
 import { SaveCardsOnJson, ReadCardsFromJson } from "./jsonCards.js";
 
 // Ésto es un middleware para decirle al servidor cómo procesar diferentes tipos de archivos como el JSON

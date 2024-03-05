@@ -15,10 +15,9 @@ export function ReadCardsFromJson(filePath) {
     const jsonData = fs.readFileSync(filePath, "utf8");
     const data = JSON.parse(jsonData);
 
-    // No necesitas desestructurar { cards } ya que deseas el objeto completo
-    return data.cards || {}; // Devuelve un objeto vacío si `cards` no existe
+    return data.cards || {};
   } catch (error) {
     console.error(`Error while reading ${filePath}: `, error);
-    return {}; // Devolver un objeto vacío en caso de error permite manejar el error de forma más controlada
+    return {};
   }
 }
