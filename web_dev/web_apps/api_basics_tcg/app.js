@@ -13,6 +13,7 @@ app.use(express.json());
 const port = 3000;
 const jsonFilePath = "./cards.json";
 const cards = ReadCardsFromJson(jsonFilePath);
+// console.log(cards);
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
@@ -20,7 +21,8 @@ app.listen(port, () => {
 });
 
 app.get("/api/cards", (req, resp) => {
-  if (cards.length < 1) resp.status(404).json({ errors: "Card not found" });
+  if (Object.keys(cards).length === 0)
+    resp.status(404).json({ message: "Cards not found" });
   else resp.status(200).json(cards);
   return;
 });
