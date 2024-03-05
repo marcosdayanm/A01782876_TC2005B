@@ -121,6 +121,7 @@ app.post(
     }
 
     delete card.id;
+
     delete cards.id;
     cards[id] = card;
 
