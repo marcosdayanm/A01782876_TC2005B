@@ -15,7 +15,7 @@ export function ReadCardsFromJson(filePath) {
     const jsonData = fs.readFileSync(filePath, "utf8");
     const data = JSON.parse(jsonData);
 
-    return data.cards || {};
+    return data.cards || [];
   } catch (error) {
     console.error(`Error while reading ${filePath}: `, error);
     return {};

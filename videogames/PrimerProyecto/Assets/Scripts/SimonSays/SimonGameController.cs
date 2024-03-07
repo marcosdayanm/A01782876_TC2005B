@@ -3,143 +3,118 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Unity.VisualScripting;
+using System.Linq;
 
 
 public class SimonGameController : MonoBehaviour
 {
+    // Para que solo Unity pueda acceder a el elemento
+    [SerializeField] List<int> simonSequence = new List<int>();
+    [SerializeField] List<int> playerSequence = new List<int>();
 
-    public List<int> simonList, userList;
-    public bool proMode = false;
-    public int score = 0;
-    public TMP_Text scoreUI;
-    public Button[] simonButtons;
+    // Un array de botones
+    [SerializeField] GameObject[] buttons;
 
-    public GameObject menuImage, gameImage;
-    public Button startGameButton;
-    public Toggle proModeToggle;
+    int score = 0;
 
-
-    // Start is called before the first frame update
     void Start()
     {
-        startGameButton.onClick.AddListener(StartGame);
+        // Incializar los botones con su colore de inicio
+        foreach (var b in buttons)
+            b.GetComponent<SimonButton>().Initialize();
+
+        Debug.Log("Botones Inicializados");
+        
+
+
+        // Añadir listeners a los botones ára el clickeo
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            int index = i;
+            buttons[i].GetComponent<Button>().onClick.AddListener(() => RegisterButtonClick(index));
+        }
+
+        Debug.Log("Botones con Listener");
+
+        
+        StartCoroutine(GameFlow());
     }
 
-    // Update is called once per frame
     void Update()
     {
         
     }
 
-
-    public void StartGame()
-    {
-        if (proModeToggle.isOn) proMode = true;
-        HideMenuElements();
-
-    for (int i = 0; i < simonButtons.Length; i++)
-        {
-            int index = i; // Crear una nueva variable index dentro del scope del bucle
-            simonButtons[i].onClick.AddListener(() => ButtonPressedUser(index));
-        }
-
-        StartCoroutine(GameFlow());
-
-    }
-
-    public void HideMenuElements()
-    {
-        menuImage.SetActive(false);
-        proModeToggle.gameObject.SetActive(false);
-        startGameButton.gameObject.SetActive(false);
-    }
-
-    
     IEnumerator GameFlow()
     {
-        yield return new WaitForSeconds(1); // Espera un momento antes de iniciar la secuencia
-
-        while (true)
+        Debug.Log("Entré a GameFLow");
+        while(true)
         {
-            Debug.Log("loop del gameflow");
-            AddSimonSequence();
-            yield return StartCoroutine(ShowSimonSequence());
+            AddNumber();
 
+            // Con esto se crea un thread en el que se llama a la función en el
+            yield return StartCoroutine(ColorButtons(simonSequence.Count));
 
-            userList.Clear(); // Asegúrate de limpiar la lista antes de recibir nuevas entradas
-
-            Debug.Log("A punto de entrar a el loop de esperar al usuario");
-            
-            while (userList.Count < simonList.Count)
+            // Obtener el resultado de InputAndValidation
+            IEnumerator validationCoroutine = InputAndValidation();
+            while (validationCoroutine.MoveNext())
             {
-
-
-                // Verifica si el usuario ha completado su secuencia
-                if (userList.Count == simonList.Count)
-                {
-                    Debug.Log("Entramos a q es igual el string");
-                    // // Aquí puedes verificar si la secuencia del usuario es correcta
-                    // if (IsUserSequenceCorrect())
-                    // {
-                    //     // Correcto. Continúa al siguiente nivel
-                    //     IncreaseScore();
-                    // }
-                    // else
-                    // {
-                    //     // Incorrecto. Finaliza el juego o reinicia
-                    //     GameOver();
-                    //     yield break; // Salir de la corutina si el juego termina
-                    // }
-
-                    score ++;
-                    scoreUI.text = score.ToString();
-
-                    break;
-                }
-                yield return null; // Espera un frame antes de verificar de nuevo
+                yield return validationCoroutine.Current;
             }
-
-
             
-            yield return new WaitForSeconds(1); // Espera antes de la próxima secuencia
-            
-        }
+            bool sequenceValid = (bool)validationCoroutine.Current;
+
+            if (!sequenceValid)
+            {
+                // Manejar la secuencia incorrecta, por ejemplo, terminar el juego
+                Debug.Log("Secuencia incorrecta. Juego terminado.");
+                yield break;
+            }
+            Debug.Log($"Secuencia correcta. Score: {score}"); 
+            score++;
+
+        }     
+    }
+
+    void AddNumber()
+    {
+        int num = Random.Range(0, buttons.Length);
+        simonSequence.Add(num);
+        Debug.Log($"Número añadido! {num}");
     }
 
 
-    void AddSimonSequence()
+    IEnumerator ColorButtons(int size)
     {
-        simonList.Add(Random.Range(0, 4)); // 0 a 3
-    }
-
-    IEnumerator ShowSimonSequence()
-    {
-        foreach (int i in simonList)
+        Debug.Log($"Iteración: {size}");
+        for (int i=0; i<size; i++)
         {
-            yield return StartCoroutine(PressButton(i)); // Corrección aquí
+            int currentButton = simonSequence[i];
+            Debug.Log(currentButton);
+
+            // Llamar el método del script de botones, primero llamando al botón
+            buttons[currentButton].GetComponent<SimonButton>().Highlight();
+            yield return new WaitForSeconds(1); // Yield es como un async, se espera a que la función termine para regresar
         }
     }
 
-    IEnumerator PressButton(int buttonIndex)
+    void RegisterButtonClick(int buttonIndex)
     {
-        var button = simonButtons[buttonIndex];
-        var colors = button.colors; // Obtiene la configuración actual de colores del botón
-        var originalColor = colors.normalColor; // Guarda el color original
-
-        colors.normalColor = colors.pressedColor; // Cambia al color "presionado"
-        button.colors = colors; // Aplica los cambios
-
-        yield return new WaitForSeconds(0.5f); // Espera medio segundo
-
-        colors.normalColor = originalColor; // Restaura el color original
-        button.colors = colors; // Aplica los cambios
+        playerSequence.Add(buttonIndex);
     }
 
 
-    public void ButtonPressedUser(int index)
+    IEnumerator InputAndValidation()
     {
-        userList.Add(index);
+        playerSequence.Clear();
+        while (playerSequence.Count < simonSequence.Count)
+            yield return null; // Esperar hasta que el jugador complete su secuencia
+
+        // Validar la secuencia del jugador
+        yield return simonSequence.SequenceEqual(playerSequence);
     }
+
 
 
 }
