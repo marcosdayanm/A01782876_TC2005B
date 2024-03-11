@@ -21,16 +21,19 @@ public class SimonGameController : MonoBehaviour
     public Image menuImage;
     public Image gameOverImage;
     public TMP_Text scoreUI;
+    public TMP_Text highScoreUI;
     [SerializeField] GameObject startGameButton;
     [SerializeField] Toggle proMode;
     bool proModeBool = false;
 
     int score = 0;
+    int highScore = 0;
 
     void Start()
     {
         gameOverImage.enabled = false;
         scoreUI.enabled = false;
+        highScoreUI.enabled = false;
         proMode.isOn = false;
 
         // Incializar los botones con su colore de inicio
@@ -55,6 +58,7 @@ public class SimonGameController : MonoBehaviour
     {
         menuImage.enabled = false;
         scoreUI.enabled = true;
+        highScoreUI.enabled = true;
         startGameButton.gameObject.SetActive(false);
         proModeBool = proMode.isOn;
         proMode.gameObject.SetActive(false);
@@ -62,6 +66,7 @@ public class SimonGameController : MonoBehaviour
         simonSequence.Clear();
         playerSequence.Clear();
         scoreUI.text = score.ToString();
+        highScoreUI.text = highScore.ToString();
     }
 
     void FinishGame()
@@ -70,6 +75,7 @@ public class SimonGameController : MonoBehaviour
         startGameButton.gameObject.SetActive(true);
         proMode.gameObject.SetActive(true);
         scoreUI.enabled = false;
+        highScoreUI.enabled = false;
         StopCoroutine(GameFlow());
     }
 
@@ -113,6 +119,12 @@ public class SimonGameController : MonoBehaviour
             score++;
             Debug.Log($"Secuencia correcta. Score: {score}"); 
             scoreUI.text = score.ToString();
+
+            if (highScore < score)
+            {
+            highScore++;
+            highScoreUI.text = highScore.ToString();
+            }
         }
     }
 
