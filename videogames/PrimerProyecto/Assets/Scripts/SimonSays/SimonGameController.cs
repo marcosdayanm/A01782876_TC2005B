@@ -16,39 +16,72 @@ public class SimonGameController : MonoBehaviour
     // Un array de botones
     [SerializeField] GameObject[] buttons;
 
+
+    // Menu Screen
+    public Image menuImage;
+    public Image gameOverImage;
+    public TMP_Text scoreUI;
+    [SerializeField] GameObject startGameButton;
+    [SerializeField] Toggle proMode;
+    bool proModeBool = false;
+
     int score = 0;
 
     void Start()
     {
+        gameOverImage.enabled = false;
+        scoreUI.enabled = false;
+        proMode.isOn = false;
+
         // Incializar los botones con su colore de inicio
         foreach (var b in buttons)
             b.GetComponent<SimonButton>().Initialize();
-
-        Debug.Log("Botones Inicializados");
-        
-
 
         // Añadir listeners a los botones ára el clickeo
         for (int i = 0; i < buttons.Length; i++)
         {
             int index = i;
-            buttons[i].GetComponent<Button>().onClick.AddListener(() => RegisterButtonClick(index));
+            buttons[i].GetComponent<Button>().onClick.AddListener(() => {
+                RegisterButtonClick(index); 
+                Debug.Log($"Button clicked: {index}");
+            });
         }
 
-        Debug.Log("Botones con Listener");
-
-        
-        StartCoroutine(GameFlow());
+        startGameButton.GetComponent<Button>().onClick.AddListener(StartGameFlow);
     }
 
-    void Update()
+
+    void StartGame()
     {
-        
+        menuImage.enabled = false;
+        scoreUI.enabled = true;
+        startGameButton.gameObject.SetActive(false);
+        proModeBool = proMode.isOn;
+        proMode.gameObject.SetActive(false);
+        score = 0;
+        simonSequence.Clear();
+        playerSequence.Clear();
+        scoreUI.text = score.ToString();
+    }
+
+    void FinishGame()
+    {
+        menuImage.enabled = true;
+        startGameButton.gameObject.SetActive(true);
+        proMode.gameObject.SetActive(true);
+        scoreUI.enabled = false;
+        StopCoroutine(GameFlow());
+    }
+
+
+    public void StartGameFlow()
+    {
+        StartGame();
+        StartCoroutine(GameFlow());
     }
 
     IEnumerator GameFlow()
     {
-        Debug.Log("Entré a GameFLow");
         while(true)
         {
             AddNumber();
@@ -67,14 +100,20 @@ public class SimonGameController : MonoBehaviour
 
             if (!sequenceValid)
             {
+                
+                gameOverImage.enabled = true;
+                yield return new WaitForSeconds(3);
+                gameOverImage.enabled = false;
+
                 // Manejar la secuencia incorrecta, por ejemplo, terminar el juego
+                FinishGame();
                 Debug.Log("Secuencia incorrecta. Juego terminado.");
                 yield break;
             }
-            Debug.Log($"Secuencia correcta. Score: {score}"); 
             score++;
-
-        }     
+            Debug.Log($"Secuencia correcta. Score: {score}"); 
+            scoreUI.text = score.ToString();
+        }
     }
 
     void AddNumber()
@@ -87,15 +126,16 @@ public class SimonGameController : MonoBehaviour
 
     IEnumerator ColorButtons(int size)
     {
+        yield return new WaitForSeconds(1);
         Debug.Log($"Iteración: {size}");
         for (int i=0; i<size; i++)
         {
+            yield return new WaitForSeconds(0.5f); // Yield es como un async, se espera a que la función termine para regresar
             int currentButton = simonSequence[i];
             Debug.Log(currentButton);
 
             // Llamar el método del script de botones, primero llamando al botón
             buttons[currentButton].GetComponent<SimonButton>().Highlight();
-            yield return new WaitForSeconds(1); // Yield es como un async, se espera a que la función termine para regresar
         }
     }
 
@@ -107,9 +147,20 @@ public class SimonGameController : MonoBehaviour
 
     IEnumerator InputAndValidation()
     {
+
+        if (proModeBool)
+            simonSequence.Reverse(); 
+
+        bool isValid = true;
+
         playerSequence.Clear();
-        while (playerSequence.Count < simonSequence.Count)
-            yield return null; // Esperar hasta que el jugador complete su secuencia
+        while (playerSequence.Count < simonSequence.Count && isValid)
+        {
+            if (playerSequence.Count > 0)
+                isValid = playerSequence[playerSequence.Count - 1] == simonSequence[playerSequence.Count - 1];
+
+            yield return null;   
+        }
 
         // Validar la secuencia del jugador
         yield return simonSequence.SequenceEqual(playerSequence);

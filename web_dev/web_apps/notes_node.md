@@ -16,7 +16,13 @@ npm start
 
 npm install express
 
-#### Express validator
+#### MySQL2
+
+Módulo que hace la conexión con el server de MySQL
+
+npm i mysql2
+
+#### Express validator para checar lo del formato de los JSON's
 
 npm install express-validator
 
