@@ -36,6 +36,7 @@ public class SimonGameController : MonoBehaviour
         highScoreUI.enabled = false;
         proMode.isOn = false;
 
+
         // Incializar los botones con su colore de inicio
         foreach (var b in buttons)
             b.GetComponent<SimonButton>().Initialize();
@@ -46,6 +47,7 @@ public class SimonGameController : MonoBehaviour
             int index = i;
             buttons[i].GetComponent<Button>().onClick.AddListener(() => {
                 RegisterButtonClick(index); 
+                buttons[index].GetComponent<SimonButton>().Highlight();
                 Debug.Log($"Button clicked: {index}");
             });
         }
